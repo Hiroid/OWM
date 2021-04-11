@@ -11,18 +11,21 @@ def get(seed=0,pc_valid=0.10):
     taskcla = []
     size = [3, 32, 32]
     # CIFAR10
-    if not os.path.isdir('./data/binary_cifar/'):
-        os.makedirs('./data/binary_cifar')
+    if not os.path.isdir('../../data/binary_cifar/'):
+        os.makedirs('../../data/binary_cifar')
         t_num = 2
-        mean = [x / 255 for x in [125.3, 123.0, 113.9]]
+        mean = [x / 255 for x in [125.3, 123.0, 113.9]] # what? normalize the img
         std = [x / 255 for x in [63.0, 62.1, 66.7]]
         dat={}
-        dat['train']=datasets.CIFAR10('./data/', train=True, download=True, transform=transforms.Compose([transforms.ToTensor(),transforms.Normalize(mean,std)]))
-        dat['test']=datasets.CIFAR10('./data/', train=False, download=True, transform=transforms.Compose([transforms.ToTensor(),transforms.Normalize(mean,std)]))
+        dat['train']=datasets.CIFAR10('../../data/', train=True, download=True, transform=transforms.Compose([transforms.ToTensor(),transforms.Normalize(mean,std)]))
+        dat['test']=datasets.CIFAR10('../../data/', train=False, download=True, transform=transforms.Compose([transforms.ToTensor(),transforms.Normalize(mean,std)]))
         for t in range(10//t_num):
-            data[t] = {}
-            data[t]['name'] = 'cifar10-' + str(t_num*t) + '-' + str(t_num*(t+1)-1)
-            data[t]['ncla'] = t_num
+            data[t] = {} # dict for each task, add different property
+            data[t]['name'] = 'cifar10-' + str(t_num*t) + '-' + str(t_num*(t+1)-1) # dict key is 'name', value is string
+            data[t]['ncla'] = t_num # dict key is 'number of class', value is int number
+            '''
+            The following paragraph is spliting dataset for each task.
+            '''
             for s in ['train', 'test']:
                 loader = torch.utils.data.DataLoader(dat[s], batch_size=1, shuffle=False)
                 data[t][s] = {'x': [], 'y': []}
@@ -32,7 +35,7 @@ def get(seed=0,pc_valid=0.10):
                         data[t][s]['x'].append(image)
                         data[t][s]['y'].append(label)
         t = 10 // t_num
-        data[t] = {}
+        data[t] = {} # Recording all task
         data[t]['name'] = 'cifar10-all'
         data[t]['ncla'] = 10
         for s in ['train', 'test']:
@@ -46,12 +49,12 @@ def get(seed=0,pc_valid=0.10):
         # "Unify" and save
         for t in data.keys():
             for s in ['train', 'test']:
-                data[t][s]['x'] = torch.stack(data[t][s]['x']).view(-1, size[0], size[1], size[2])
+                data[t][s]['x'] = torch.stack(data[t][s]['x']).view(-1, size[0], size[1], size[2]) # stack all sample into one tensor
                 data[t][s]['y'] = torch.LongTensor(np.array(data[t][s]['y'], dtype=int)).view(-1)
                 torch.save(data[t][s]['x'],
-                           os.path.join(os.path.expanduser('./data/binary_cifar'), 'data' + str(t) + s + 'x.bin'))
+                           os.path.join(os.path.expanduser('../../data/binary_cifar'), 'data' + str(t) + s + 'x.bin'))
                 torch.save(data[t][s]['y'],
-                           os.path.join(os.path.expanduser('./data/binary_cifar'), 'data' + str(t) + s + 'y.bin'))
+                           os.path.join(os.path.expanduser('../../data/binary_cifar'), 'data' + str(t) + s + 'y.bin'))
 
     # Load binary files
     data = {}
@@ -61,8 +64,8 @@ def get(seed=0,pc_valid=0.10):
         data[i] = dict.fromkeys(['name','ncla','train','test'])
         for s in ['train','test']:
             data[i][s]={'x':[],'y':[]}
-            data[i][s]['x']=torch.load(os.path.join(os.path.expanduser('./data/binary_cifar'),'data'+str(ids[i])+s+'x.bin'))
-            data[i][s]['y']=torch.load(os.path.join(os.path.expanduser('./data/binary_cifar'),'data'+str(ids[i])+s+'y.bin'))
+            data[i][s]['x']=torch.load(os.path.join(os.path.expanduser('../../data/binary_cifar'),'data'+str(ids[i])+s+'x.bin'))
+            data[i][s]['y']=torch.load(os.path.join(os.path.expanduser('../../data/binary_cifar'),'data'+str(ids[i])+s+'y.bin'))
         data[i]['ncla'] = len(np.unique(data[i]['train']['y'].numpy()))
         data[i]['name'] = 'cifar10->>>' + str(i * data[i]['ncla']) + '-' + str(data[i]['ncla'] * (i + 1) - 1)
 

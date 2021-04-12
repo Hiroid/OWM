@@ -19,9 +19,9 @@ class Net(torch.nn.Module):
         self.fc2 = torch.nn.Linear(1000, 1000, bias=False)
         self.fc3 = torch.nn.Linear(1000, 10,  bias=False)
 
-        torch.nn.init.xavier_normal(self.fc1.weight)
-        torch.nn.init.xavier_normal(self.fc2.weight)
-        torch.nn.init.xavier_normal(self.fc3.weight)
+        torch.nn.init.xavier_normal_(self.fc1.weight)
+        torch.nn.init.xavier_normal_(self.fc2.weight)
+        torch.nn.init.xavier_normal_(self.fc3.weight)
 
         return
 

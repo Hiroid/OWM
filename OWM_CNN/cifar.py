@@ -40,17 +40,17 @@ def get(seed=0,pc_valid=0.10):
         data[t]['ncla'] = 10
         for s in ['train', 'test']:
             loader = torch.utils.data.DataLoader(dat[s], batch_size=1, shuffle=False)
-            data[t][s] = {'x': [], 'y': []}
+            data[t][s] = {'x': [], 'y': []} # data[task][train/test] is a dict, optional x & y
             for image, target in loader:
                 label = target.numpy()[0]
                 data[t][s]['x'].append(image)
                 data[t][s]['y'].append(label)
 
         # "Unify" and save
-        for t in data.keys():
+        for t in data.keys(): # all the keys in dict data, i.e. task number 
             for s in ['train', 'test']:
                 data[t][s]['x'] = torch.stack(data[t][s]['x']).view(-1, size[0], size[1], size[2]) # stack all sample into one tensor
-                data[t][s]['y'] = torch.LongTensor(np.array(data[t][s]['y'], dtype=int)).view(-1)
+                data[t][s]['y'] = torch.LongTensor(np.array(data[t][s]['y'], dtype=int)).view(-1)  # save all targets into one tensor
                 torch.save(data[t][s]['x'],
                            os.path.join(os.path.expanduser('../../data/binary_cifar'), 'data' + str(t) + s + 'x.bin'))
                 torch.save(data[t][s]['y'],
@@ -61,12 +61,12 @@ def get(seed=0,pc_valid=0.10):
     ids = list(np.arange(6))
     print('Task order =', ids)
     for i in range(6):
-        data[i] = dict.fromkeys(['name','ncla','train','test'])
+        data[i] = dict.fromkeys(['name','ncla','train','test']) 
         for s in ['train','test']:
             data[i][s]={'x':[],'y':[]}
             data[i][s]['x']=torch.load(os.path.join(os.path.expanduser('../../data/binary_cifar'),'data'+str(ids[i])+s+'x.bin'))
             data[i][s]['y']=torch.load(os.path.join(os.path.expanduser('../../data/binary_cifar'),'data'+str(ids[i])+s+'y.bin'))
-        data[i]['ncla'] = len(np.unique(data[i]['train']['y'].numpy()))
+        data[i]['ncla'] = len(np.unique(data[i]['train']['y'].numpy())) # count the actually class
         data[i]['name'] = 'cifar10->>>' + str(i * data[i]['ncla']) + '-' + str(data[i]['ncla'] * (i + 1) - 1)
 
     # Others
